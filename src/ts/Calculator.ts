@@ -1,4 +1,8 @@
-const operators = {
+interface Operators {
+  [key: string]: number;
+}
+
+const operators: Operators = {
   "+": 1,
   "-": 2,
   "*": 3,
@@ -7,8 +11,8 @@ const operators = {
 };
 
 class Calculator {
-  input = "";
-  output = "";
+  input: string = "";
+  output: string = "";
 
   calculate(logError: boolean, toggle: boolean = false) {
     try {
@@ -16,7 +20,9 @@ class Calculator {
       if (toggle) {
         this.input = String(result);
         this.output = "";
-      } else this.output = result;
+      } else {
+        this.output = result.toString();
+      }
     } catch (error) {
       if (logError) {
         this.input = "Error!";
@@ -56,7 +62,8 @@ class Calculator {
     if (char === "(" || char === "(-") {
       if (
         this.input === "" ||
-        (lastChar !== "." && operators.hasOwnProperty(lastChar)) ||
+        (!lastChar.endsWith(".") &&
+          Object.prototype.hasOwnProperty.call(operators, lastChar)) ||
         lastChar === "("
       )
         this.input += char;
@@ -64,29 +71,40 @@ class Calculator {
         this.input += "*" + char;
       }
     } else if (
-      (lastChar in operators || lastChar === "(" || lastChar === "(-") &&
+      (Object.prototype.hasOwnProperty.call(operators, lastChar) ||
+        lastChar === "(" ||
+        lastChar === "(-") &&
       char !== ")" &&
       isNaN(Number(char))
     ) {
       if (
         (this.input.endsWith("(-") || this.input.endsWith("(+")) &&
-        this.input[lastIndex - 2] in operators &&
+        operators[this.input[lastIndex - 2]] &&
         char !== "-" &&
         char !== "+" &&
         char !== ")"
       ) {
         this.input = this.input.slice(0, lastIndex - 2) + char;
-      } else if (lastChar === "(" && this.input[lastIndex - 1] in operators) {
-        if (char !== "+" && char !== "-" && char !== ".")
-          this.input = this.input.slice(0, lastIndex - 1) + char;
-        else this.input += char;
-      } else if (this.input.length > 1 || char === "+" || char === "-")
+      } else if (
+        lastChar === "(" &&
+        operators[this.input[lastIndex - 1]] &&
+        char !== "+" &&
+        char !== "-" &&
+        char !== "."
+      ) {
+        this.input = this.input.slice(0, lastIndex - 1) + char;
+      } else if (
+        this.input.length > 1 ||
+        char === "+" ||
+        char === "-"
+      ) {
         this.input = this.input.slice(0, lastIndex) + char;
+      }
     } else if (
       this.input !== "" ||
       (this.input === "" &&
         (char === "+" || char === "-" || !operators.hasOwnProperty(char)))
-    )
+    ) {
       this.input +=
         lastChar === ")" &&
         !operators.hasOwnProperty(char) &&
@@ -94,6 +112,7 @@ class Calculator {
         char !== ")"
           ? "*" + char
           : char;
+    }
 
     this.calculate(logError);
   }
